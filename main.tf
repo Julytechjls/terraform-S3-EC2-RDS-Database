@@ -37,6 +37,7 @@ resource "aws_instance" "web_server" {
   instance_type               = "t2.micro"
   key_name                    = "vockey" # Your SSH key pair name
   vpc_security_group_ids      = [aws_security_group.web_sg.id]
+
   tags = {
     Name = "WebServer"
   }
@@ -46,6 +47,7 @@ resource "aws_instance" "web_server" {
     destination = "/tmp/install_apache.sh"
   }
 
+  
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/install_apache.sh",
@@ -57,13 +59,19 @@ resource "aws_instance" "web_server" {
     source      = "index.html"
     destination = "/tmp/index.html"
   }
+  
+  provisioner "file" {
+    source      = "submit.php"
+    destination = "/tmp/submit.php"
+  }
 
   provisioner "remote-exec" {
     inline = [
       "sudo yum update -y",
       "sudo yum install httpd -y",
       "sudo systemctl start httpd",
-      "sudo systemctl enable httpd"
+      "sudo systemctl enable httpd",
+      "sudo mv /tmp/index.html /tmp/submit.php /var/www/html/"
     ]
   }
 
